@@ -3,7 +3,7 @@ project(yolov8_bmcv)
 
 set(CMAKE_BUILD_TYPE Debug)
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
-message("cur dir: ${PROJECT_SOURCE_DIR}")
+message(STATUS "cur dir: ${PROJECT_SOURCE_DIR}")
 
 #Usage: check_and_replace_path(SDK)
 #Input src path, output absolute path.
@@ -13,7 +13,7 @@ function(check_and_replace_path ARG_NAME)
     endif()
     set(PATH_TO_CHECK ${CMAKE_CURRENT_BINARY_DIR}/${${ARG_NAME}})
     if(EXISTS ${PATH_TO_CHECK})
-        message("Path ${PATH_TO_CHECK} exists")
+        message(STATUS "Path ${PATH_TO_CHECK} exists")
         get_filename_component(ABSOLUTE_PATH ${PATH_TO_CHECK} ABSOLUTE)
         if(EXISTS ${ABSOLUTE_PATH})
             set(${ARG_NAME} ${ABSOLUTE_PATH} PARENT_SCOPE)
@@ -30,8 +30,10 @@ if (NOT DEFINED TARGET_ARCH)
 endif()
 
 set(SDK "/data/workspace/soc-sdk")
-message( "soc mode, starting......")
+message(STATUS "soc mode, starting......")
 check_and_replace_path(${SDK})
+message(STATUS "SDK: " ${SDK})
+
 set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
 set(CMAKE_ASM_COMPILER aarch64-linux-gnu-gcc)
 set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
@@ -41,12 +43,11 @@ set(BM_LIBS bmlib bmrt bmcv yuv)
 set(JPU_LIBS bmjpuapi bmjpulite)
 set(OPENCV_LIBS opencv_imgproc opencv_core opencv_highgui opencv_imgcodecs opencv_videoio)
 set(YAML_LIBS yaml-cpp)
+
 include_directories("${SDK}/include/")
 include_directories("${SDK}/include/opencv4")
 include_directories("${SDK}/include/yaml-cpp")
 link_directories("${SDK}/lib/")
-
-message("SDK: " ${SDK})
 
 # 添加静态库目标
 add_subdirectory(

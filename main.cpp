@@ -55,15 +55,20 @@ int main(int argc, char** argv) {
 		printf("%s <model_name> <image_path>\n", argv[0]);
 		return -1;
 	}
+
 	int ret = 0;
 	int dev_id = 0;
 	const char* model_name = argv[1];  // det_person
 	const char* image_path = argv[2];  // image dirname
 
+	// 读取yaml文件
+	YAML::Node config = YAML::LoadFile("models.yaml");
+	YAML::Node env_settings_node = config["env_settings"];
+
 	// 打开动态库
 	dlerror();
 	void* handle = NULL;
-	const char* so_path = "libbm_model_library.so";
+	const char* so_path = env_settings_node["so_path"].as<std::string>();
 	ret = loadSo(so_path, handle);
     const char* dlsym_error = dlerror();
     if (dlsym_error) {
@@ -72,13 +77,13 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-	// 读取yaml文件
-	YAML::Node config = ReadYamlFile("models.yaml");
-	YAML::Node model_node = config[model_name];
+	YAML::Node model_node = config["models"][model_name];
 	if (!model_node) {
 		std::cerr << "Unknown model_name: " << model_name << std::endl;
-		throw std::invalid_argument("Unknown model_name: " + std::string(model_name));
+        dlclose(handle);
+		return 2;
 	}
+
 	const std::string init_func_name = model_node["init_func_name"].as<std::string>();
 	const std::string infer_func_name = model_node["function_name"].as<std::string>();
 	const std::string bmodel_file = model_node["path"].as<std::string>();
@@ -90,7 +95,8 @@ int main(int argc, char** argv) {
 	cv::Mat input_image = cv::imread(image_path, cv::IMREAD_COLOR);
 	if(input_image.empty()) {
 		std::cerr << "Failed to read image: " << image_path << std::endl;
-		return 1;
+        dlclose(handle);
+		return 3;
 	}
 
 	if (model_type == "yolo_det") { // yolo检测模型

@@ -1,5 +1,6 @@
 env_settings:                   #配置运行时环境变量
   enable_log: true             #开启全局log  [bool]
+  so_path: "libbm_model_library.so"
 
 models:
   person_det:
